@@ -1,0 +1,212 @@
+#+TITLE: Matrix Computations with Apache Spark
+#+AUTHOR: Gustaf Waldemarson
+
+* Introduction
+
+  In this report the framework for performing linear algebra in the cloud using
+  the Apache Spark (CITE) library LINALG (CITE). In particular, the performance
+  received is compared against that of a local machine, to evaluate if the cloud
+  can provide any beneficial speed-up using the /free/ tier on the Google
+  DataProc platform (CITE).
+
+
+* Terminology
+
+  - Sparse  :: A matrix such that the quotient between the number of zero and
+               non-zero elements is less than $0.5$
+  - Dense   :: A matrix with more non-zero elements than zero elements.
+  - (S)GEMM :: (Single Precision floating point) General Matrix Multiplication.
+  - $O(n)$  :: Big-O-notation for approximating the complexity of algorithms by
+               removing all factors but the most dominating one.
+
+* Theory
+
+  In its simplest form, matrix multiplication can be described succinctly with
+  very few lines of code:
+
+  #+BEGIN_SRC c++
+    template<typename T, size_t N, size_t M, size_t P>
+    Matrix<T, N, P> operator*(const Matrix<T, N, M> &a, const Matrix<T, M, P> &b)
+    {
+        Matrix<T, N, P> t;
+        for (size_t i = 0; i < N; ++i)
+        {
+            for (size_t j = 0; j < P; ++j)
+            {
+                for (size_t k = 0; k < M; ++k)
+                {
+                    t(i, j) += a(i, k) * b(k, j);
+                }
+            }
+        }
+        return t;
+    }
+  #+END_SRC
+
+  For square matrices (i.e., $N = M = P$ above), this code takes time $O(n^{3})$
+  to execute. To this date, several new algorithms have been devised that reduce
+  this bound such as the frequently used Strassens algorithm (CITE) with a bound
+  of around $O(n^{2.8074})$, and currently the record is around $O(n^{2.3729})$
+  by the /Coppersmith–Winograd algorithm/ (CITE).
+
+  However, it is important to point out that some of these algorithms can change
+  the numerical stability or require more memory. Additionally, a lower
+  asymptotic bounds may not be beneficial, if the constant factor dominates the
+  computations.
+
+  In particular, the /Coppersmith–Winograd algorithm/ only provides a benefit
+  over other algorithms for matrices larger than what can practically be
+  processed by modern hardware. (CITE NEEDED).
+
+
+** Computational Limits
+ 
+   With a known algorithmic bound for the algorithms, it is possible to estimate
+   how many ($t$) seconds it will take to execute the algorithm:
+
+   \begin{equation}
+     t = \frac{O(n^{3})}{E}
+   \end{equation}
+
+   Where $n$ is the number of elements in the matrices and $E$ is the number of
+   floating points operations executed per second.
+   
+* Approach
+
+  To evaluate the performance of matrix multiplication running on cloud
+  computers the results will be compared with those of a local machine (A Lenovo
+  T480s laptop, with an Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz).
+
+  The cloud platform used for this project is configured according to: (TODO).
+
+  To see how the problem scales we select $5$ pairs of square matrices between
+  $10 \times 10$ and $100000 \times 100000$ elements. These are sampled from
+  from the SuiteSparse Matrix collection (CITE).
+
+  These bounds are selected to avoid running a too expensive experiment, as the
+  estimated time for a $100000x100000$ is around $0.18$ days of execution time
+  according to (CITE).
+  
+  # In addition, we will also evaluate how a mixed sparse/dense multiplication
+  # perform in relation to the sparse-spare and dense-dense operation. This is
+  # done by using one of the matrices from each of the sparse and dense matrix
+  # datasets.
+
+  To evaluate the performance on each platform, the execution time (CPU time)
+  and peak memory usage is measured.
+
+  Finally, each experiment is repeated 5 times in order to provide reasonable
+  average and standard deviation on the execution time and peak memory
+  requirement.
+
+  | ID A | Dataset A  | ID B | Dataset B              |   Size | Type   |
+  |------+------------+------+------------------------+--------+--------|
+  |  238 | rgg010     | 1524 | Stranke94              |     10 | Dense  |
+  |  220 | nos4       | 1326 | rotor1                 |    100 | Dense  |
+  |  338 | tub1000    |  508 | G45                    |   1000 | Sparse |
+  | 1612 | cryg10000  |  532 | G67                    |  10000 | Sparse |
+  | 2576 | smallworld | 2575 | preferentialAttachment | 100000 | Sparse |
+
+  Note that as we are using of-the-shelf algorithms, we assume that the result
+  is always correct and thus only concern ourselves with the execution
+  statistics.
+  
+* Results
+
+** Local Laptop  
+  
+   | Dataset A  | Dataset B              | Peak Memory | CPU Time |
+   |------------+------------------------+-------------+----------|
+   | rgg010     | Stranke94              |             |          |
+   | nos4       | rotor1                 |             |          |
+   | tub1000    | G45                    |             |          |
+   | cryg10000  | G67                    |             |          |
+   | smallworld | preferentialAttachment |             |          |
+
+
+** Cloud
+
+   | Dataset A  | Dataset B              | Peak Memory | CPU Time |
+   |------------+------------------------+-------------+----------|
+   | rgg010     | Stranke94              |             |          |
+   | nos4       | rotor1                 |             |          |
+   | tub1000    | G45                    |             |          |
+   | cryg10000  | G67                    |             |          |
+   | smallworld | preferentialAttachment |             |          |
+
+
+* Further Work
+
+  Due to the limited scope of this project, a large amount of interesting topics
+  in computational linear algebra is by necessity omitted.
+
+  To begin, it would be very interesting to see how matrix multiplication
+  perform on GPUs and by extension, on GPUs in the cloud. This is a significant
+  topic in itself since performance can vary greatly depending on the
+  vendors. (NEEDS CITE).
+
+  This project only focused on square matrices to keep the project simple, a
+  bigger project should also evaluate performance on non-square matrices.
+
+  Also, the experiments mostly focused on sparse matrices, as that was the only
+  type of matrices easily obtained from the SuiteSparse Matrix collection
+  (CITE). A larger study should compare larger dense matrices as well as sparse
+  ones.
+  
+  Additionally, there are at several other classes of matrices that could be
+  evaluated:
+
+  - Diagonal  :: Matrix with elements exclusively on the central diagonal of the
+                 matrix.
+  - Banded    :: Matrix with elements along some diagonals of the matrix.
+  - Symmetric :: A matrix whose transposition is equal to itself.
+
+  Since there are often specialized routines for these kinds of matrices, a
+  project of larger scope should incorporate evaluations of these types of
+  matrices.
+
+* Conclusions
+
+
+* GitHub Link
+
+  [[www.example.com][Link-to-be-added]]
+  
+* Comments on the Assignment
+
+  In general, the assignment was not particularly hard, but the lack of
+  directions made it a bit unclear what results were actually desired.
+
+  To begin with the Google Cloud platform is massive with many confusing and
+  often contradictory terms; and to make matters worse: Doing something wrong
+  can result in a significant loss of real money. Thus, simply pointing us to
+  the front page of Google DataProc and telling us to "get crackin'" is
+  absolutely the wrong approach for this kind of project.
+
+  Also, what is exactly is "Matrix computations"? While I'm all for open-ended
+  questions and open investigations in research topics, this is unnecessarily
+  vague. Either be frank to the students and ask them to choose one kind of
+  matrix computation to study or explicitly state what computations one should
+  investigate.
+
+  Moreover, the instructions strongly suggest using preemptible instances,
+  however, when you dig into the documentations for the "free" instances you
+  notice that
+  
+  Regarding the SuiteSparse Matrix collection: This struck me as rather odd
+  choice of dataset-source since it almost exclusively contains sparse matrices,
+  meaning that the type of matrices and computations we can investigate is
+  drastically limited.
+
+  Additionally, for larger matrices it became increasingly difficult to find two
+  different matrices of the same dimensions, which would force us the either
+  truncate some other matrix and make notes of that, or only perform
+  matrix-squaring instead of multiplying.
+  
+  To make matters worse, the behavior of matrix-multiplication differs
+  significantly depending on which kind of matrices one is operating on, meaning
+  that final results are extremely dependent on the user choices. This makes it
+  very hard to design a proper experiment and draw reasonable conclusions from
+  the results.
+
+  
