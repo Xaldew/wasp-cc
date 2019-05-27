@@ -170,7 +170,7 @@
 
 * GitHub Link
 
-  [[www.example.com][Link-to-be-added]]
+  [[https://github.com/Xaldew/wasp-cc]]
   
 * Comments on the Assignment
 
@@ -191,7 +191,14 @@
 
   Moreover, the instructions strongly suggest using preemptible instances,
   however, when you dig into the documentations for the "free" instances you
-  notice that
+  notice that you are required to use 1 master and at least 2 nodes *normal*
+  worker nodes. And, since you are limited 8 vCPUs in *total* it is not
+  worthwhile to try to fit preemptible instances into this quota. For a task
+  like this it just adds complexity and should simply be omitted.
+
+  Additionally, all given examples are mostly a collection of examples of how to
+  perform *functional programming* and not cloud computing. A lot of details
+  regarding how to host/transfer large datasets feels like they're missing.
   
   Regarding the SuiteSparse Matrix collection: This struck me as rather odd
   choice of dataset-source since it almost exclusively contains sparse matrices,
