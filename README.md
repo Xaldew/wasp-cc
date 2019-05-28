@@ -52,3 +52,7 @@ evaluated.
 - If you're missing Python packages, login to the Spark master node and use
   `apt` to install the packages. E.g., `sudo apt install python-scipy` for the
   python2.7 version of SciPy.
+
+- Be careful of running out of memory. It seems like `gcloud` does *not* shut
+  down the job in case the Spark master crashes, so it may keep running
+  indefinitely if not canceled manually.
