@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 # Convert all MatrixMarket files to RDDs on our Google bucket.
 
 top=$(git rev-parse --show-toplevel)
