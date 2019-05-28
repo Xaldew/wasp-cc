@@ -31,6 +31,8 @@ def main(args):
     """
     conf = pyspark.SparkConf().set("spark.hadoop.validateOutputSpecs", "false")
     sc = pyspark.SparkContext(conf=conf)
+
+    # Required to get ass to the `toDF()` function inside of CoordinateMatrix.
     spark = pyspark.sql.SparkSession(sc)
 
     # Write the file to a temporaryfile so we can actually convert it.
