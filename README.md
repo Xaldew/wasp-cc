@@ -44,3 +44,11 @@ evaluated.
 
 - SparseQR cannot handle matrices at 100000x100000 or larger (runs out of
   memory).
+
+- When saving/restoring a RDD, I recommend using `saveAsPickleFile()` and
+  `pickleFile()` in order to avoid having to parse a RDD textfile in order to
+  restore the RDD.
+
+- If you're missing Python packages, login to the Spark master node and use
+  `apt` to install the packages. E.g., `sudo apt install python-scipy` for the
+  python2.7 version of SciPy.
