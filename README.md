@@ -38,3 +38,9 @@ evaluated.
   [tutorial](https://cloud.google.com/dataproc/docs/tutorials/gcs-connector-spark-tutorial)
   as it contains a bit more information about how to *actually* create HDFS
   datasets, refer to them and use them in scripts, etc.
+
+- Oddly enough, `scipy.io.mmread()` appears to be `python2` only. Should
+  probably report that as a bug at some point.
+
+- SparseQR cannot handle matrices at 100000x100000 or larger (runs out of
+  memory).
