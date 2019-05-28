@@ -34,7 +34,7 @@ def main(args):
     spark = pyspark.sql.SparkSession(sc)
 
     # Write the file to a temporaryfile so we can actually convert it.
-    A = sc.textFile(args.A)
+    A = sc.textFile(args.A, use_unicode=False)
     tmp = tempfile.TemporaryFile()
     tmp.write("\n".join(A.collect()))
     tmp.seek(0)
@@ -42,7 +42,11 @@ def main(args):
     # Read the matrix using SciPy and convert to coordinate-matrix.
     a = scipy.io.mmread(tmp)
     s = a.shape
-    coo = sc.parallelize(list((r, c, v) for ((r, c), v) in a.todok().items()))
+    if isinstance(a, numpy.ndarray):
+        d = {(i, j): a[i][j] for i in range(s[0]) for j in range(s[1]) if a[i][j] != 0.0}
+    else:
+        d = a.todok()
+    coo = sc.parallelize(list((r, c, v) for ((r, c), v) in d.items()))
 
     # Convert the matrix to the PySpark representation and save the RDD.
     mat = pyspark.mllib.linalg.distributed.CoordinateMatrix(coo, s[0], s[1])
