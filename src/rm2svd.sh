@@ -7,6 +7,7 @@ for item in \
     $(gsutil ls -d gs://${BUCKET}/output/mm/10_*) \
         $(gsutil ls -d gs://${BUCKET}/output/mm/100_*) \
         $(gsutil ls -d gs://${BUCKET}/output/mm/1000_*) \
+        $(gsutil ls -d gs://${BUCKET}/output/mm/10000_*) \
     ;
 do
     printf "Processing: %s\n" ${item}
