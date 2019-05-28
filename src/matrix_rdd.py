@@ -53,7 +53,7 @@ def main(args):
     # Convert the matrix to the PySpark representation and save the RDD.
     mat = pyspark.mllib.linalg.distributed.CoordinateMatrix(coo, s[0], s[1])
     mat = mat.toRowMatrix()
-    mat.rows.saveAsTextFile(args.O)
+    mat.rows.saveAsPickleFile(args.O)
 
     return 0
 
