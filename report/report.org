@@ -175,12 +175,14 @@
 * Comments on the Assignment
 
   In general, the assignment was not particularly hard, but the lack of
-  directions made it a bit unclear what results were actually desired.
+  directions made it a bit unclear what results were actually desired. Also, the
+  general lack of good examples for running Spark on Google Cloud made this
+  assignment far more vexing than necessary.
 
-  To begin with the Google Cloud platform is massive with many confusing and
-  often contradictory terms; and to make matters worse: Doing something wrong
-  can result in a significant loss of real money. Thus, simply pointing us to
-  the front page of Google DataProc and telling us to "get crackin'" is
+  To begin with the Google Cloud platform is massive and contains many confusing
+  and often contradictory terms; and to make matters worse: Doing something
+  wrong can result in a significant loss of real money. Thus, simply pointing us
+  to the front page of Google DataProc and telling us to "get crackin'" is
   absolutely the wrong approach for this kind of project.
 
   Also, what is exactly is "Matrix computations"? While I'm all for open-ended
@@ -198,7 +200,8 @@
 
   Additionally, all given examples are mostly a collection of examples of how to
   perform *functional programming* and not cloud computing. A lot of details
-  regarding how to host/transfer large datasets feels like they're missing.
+  regarding how to host/transfer large datasets is completely missing. This is
+  difficult part of this assignment, not how to compose functions.
   
   Regarding the SuiteSparse Matrix collection: This struck me as rather odd
   choice of dataset-source since it almost exclusively contains sparse matrices,
