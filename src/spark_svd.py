@@ -26,9 +26,10 @@ def main(args):
     conf = (pyspark.SparkConf()
             .setAppName("SVD")
             .set("spark.hadoop.validateOutputSpecs", "false")
-            .set("spark.executor.memory", "4g")
-            .set("spark.driver.memory", "4g")
-            .set("spark.driver.maxResultSize", "4g"))
+            # .set("spark.executor.memory", "4g")
+            # .set("spark.driver.memory", "4g")
+            # .set("spark.driver.maxResultSize", "4g")
+    )
     sc = pyspark.SparkContext(conf=conf)
 
     # Required to get access to the `toDF()` function inside of CoordinateMatrix.
