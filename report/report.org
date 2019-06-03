@@ -36,56 +36,6 @@
    For more details regarding the decomposition, see for instance (CITE).
 
 
-   # In its simplest form, matrix multiplication can be described succinctly with
-   # very few lines of code:
-
-   # #+BEGIN_SRC c++
-   #   template<typename T, size_t N, size_t M, size_t P>
-   #   Matrix<T, N, P> operator*(const Matrix<T, N, M> &a, const Matrix<T, M, P> &b)
-   #   {
-   #       Matrix<T, N, P> t;
-   #       for (size_t i = 0; i < N; ++i)
-   #       {
-   #           for (size_t j = 0; j < P; ++j)
-   #           {
-   #               for (size_t k = 0; k < M; ++k)
-   #               {
-   #                   t(i, j) += a(i, k) * b(k, j);
-   #               }
-   #           }
-   #       }
-   #       return t;
-   #   }
-   # #+END_SRC
-
-   # For square matrices (i.e., $N = M = P$ above), this code takes time $O(n^{3})$
-   # to execute. To this date, several new algorithms have been devised that reduce
-   # this bound such as the frequently used Strassens algorithm (CITE) with a bound
-   # of around $O(n^{2.8074})$, and currently the record is around $O(n^{2.3729})$
-   # by the /Coppersmith–Winograd algorithm/ (CITE).
-
-   # However, it is important to point out that some of these algorithms can change
-   # the numerical stability or require more memory. Additionally, a lower
-   # asymptotic bounds may not be beneficial, if the constant factor dominates the
-   # computations.
-
-   # In particular, the /Coppersmith–Winograd algorithm/ only provides a benefit
-   # over other algorithms for matrices larger than what can practically be
-   # processed by modern hardware. (CITE NEEDED).
-
-
-   # ** Computational Limits
-
-   #    With a known algorithmic bound for the algorithms, it is possible to estimate
-   #    how many ($t$) seconds it will take to execute the algorithm:
-
-   #    \begin{equation}
-   #      t = \frac{O(n^{3})}{E}
-   #    \end{equation}
-
-   #    Where $n$ is the number of elements in the matrices and $E$ is the number of
-   #    floating points operations executed per second.
-
 * Approach
 
   # To evaluate the performance of matrix multiplication running on cloud
@@ -114,37 +64,9 @@
   Note that the matrix is preprocessed to a serialized sparse row-matrix format
   in order to reduce the impact of parsing the MatrixMarket format.
 
-  # To see how the problem scales we select $5$ pairs of square matrices between
-  # $10 \times 10$ and $100000 \times 100000$ elements. These are sampled from
-  # from the SuiteSparse Matrix collection (CITE).
-
-  # These bounds are selected to avoid running a too expensive experiment, as the
-  # estimated time for a $100000x100000$ is around $0.18$ days of execution time
-  # according to (CITE).
-
-  # In addition, we will also evaluate how a mixed sparse/dense multiplication
-  # perform in relation to the sparse-spare and dense-dense operation. This is
-  # done by using one of the matrices from each of the sparse and dense matrix
-  # datasets.
-
-  # To evaluate the performance on each platform, the execution time (CPU time)
-  # and peak memory usage is measured.
-
-  # Finally, each experiment is repeated 5 times in order to provide reasonable
-  # average and standard deviation on the execution time and peak memory
-  # requirement.
-
-  # | ID A | Dataset A  | ID B | Dataset B              |   Size | Type   |
-  # |------+------------+------+------------------------+--------+--------|
-  # |  238 | rgg010     | 1524 | Stranke94              |     10 | Dense  |
-  # |  220 | nos4       | 1326 | rotor1                 |    100 | Dense  |
-  # |  338 | tub1000    |  508 | G45                    |   1000 | Sparse |
-  # | 1612 | cryg10000  |  532 | G67                    |  10000 | Sparse |
-  # | 2576 | smallworld | 2575 | preferentialAttachment | 100000 | Sparse |
-
-  # Note that as we are using of-the-shelf algorithms, we assume that the result
-  # is always correct and thus only concern ourselves with the execution
-  # statistics.
+  Note that as we are using of-the-shelf algorithms, we assume that the result
+  is always correct and thus only concern ourselves with the execution
+  statistics.
 
 * Results
 
@@ -224,31 +146,6 @@
     | Memory use 2    |   |   |
     | Memory use 3    |   |   |
     | Memory use mean |   |   |
-
-
-    (Plots).
-
-    
-    # ** Local Laptop
-
-    #    | Dataset A  | Dataset B              | Peak Memory | CPU Time |
-    #    |------------+------------------------+-------------+----------|
-    #    | rgg010     | Stranke94              |             |          |
-    #    | nos4       | rotor1                 |             |          |
-    #    | tub1000    | G45                    |             |          |
-    #    | cryg10000  | G67                    |             |          |
-    #    | smallworld | preferentialAttachment |             |          |
-
-
-    # ** Cloud
-
-    #    | Dataset A  | Dataset B              | Peak Memory | CPU Time |
-    #    |------------+------------------------+-------------+----------|
-    #    | rgg010     | Stranke94              |             |          |
-    #    | nos4       | rotor1                 |             |          |
-    #    | tub1000    | G45                    |             |          |
-    #    | cryg10000  | G67                    |             |          |
-    #    | smallworld | preferentialAttachment |             |          |
 
 
 * Further Work
