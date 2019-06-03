@@ -45,10 +45,10 @@
   To evaluate the cloud environment, clusters are created as follows:
 
   - Using single core workers with 3.5 GB of memory, the run-time and memory
-    usage is measured for clusters of size 3 to 8.
+    usage is measured for clusters of size 3 to 8 (including master node).
 
   - Using dual core workers with 7.5 GB of memory, the run-time and memory usage
-    is measured for clusters of size 3 to 5.
+    is measured for clusters of size 3 to 5 (including master node).
 
   On each of these configuration, the $5000x5000$ matrix /add32/ (CITE) is used
   for the SVD decomposition and the $1000x1000$ matrix /G45/ (CITE) is used for
@@ -70,44 +70,48 @@
 
 * Results
 
-** Singular Value Decomposition
+** QR Decomposition
 
 *** Single Core Clusters
 
-    | vCPUs         | 3 | 4 | 5 | 6 | 7 | 8 |
-    |---------------+---+---+---+---+---+---|
-    | Run-time 1    |   |   |   |   |   |   |
-    | Run-time 2    |   |   |   |   |   |   |
-    | Run-time 3    |   |   |   |   |   |   |
-    | Run-time mean |   |   |   |   |   |   |
+    #+TBLNAME: qr-rt-sc-table
+    | vCPUs |     1 |     2 |     3 |  Mean | Unit |
+    |-------+-------+-------+-------+-------+------|
+    |     3 |  1:27 |  1:05 | 00:59 | 01:10 |      |
+    |     4 | 00:50 | 00:54 | 00:50 | 00:51 |      |
+    |     5 | 01:17 | 00:55 | 00:54 | 01:02 |      |
+    |     6 | 01:18 | 00:54 | 00:54 | 01:02 |      |
+    |     7 |       |       |       | 00:00 |      |
+    |     8 |       |       |       | 00:00 |      |
+    #+TBLFM: $5=vmean($2..$4);UE
 
-    | vCPUs           | 3 | 4 | 5 | 6 | 7 | 8 |
-    |-----------------+---+---+---+---+---+---|
-    | Memory use 1    |   |   |   |   |   |   |
-    | Memory use 2    |   |   |   |   |   |   |
-    | Memory use 3    |   |   |   |   |   |   |
-    | Memory use mean |   |   |   |   |   |   |
+    #+TBLNAME: qr-mem-table
+    | vCPUs      |    3 |    4 |    5 |     6 | 7 | 8 | Unit |
+    |------------+------+------+------+-------+---+---+------|
+    | Memory use | 3.95 | 6.92 | 9.87 | 12.88 |   |   | GB   |
 
-    (Plots).
+    #+BEGIN_SRC gnuplot :var data=qr-rt-sc-table :exports results :file qr-sc.png
+reset
+set title "QR Decomposition Performance"
+set xlabel "Cluster Size"
+set xtics 1,1,8
+set ylabel "Time (mm:ss)"
+set ydata time
+set timefmt "%M:%S"
+plot data using 1:5 with lp lw 2 notitle
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:qr-sc.png]]
+
 
 *** Dual Core Clusters
 
-    | vCPUs         | 6 | 8 |
-    |---------------+---+---|
-    | Run-time 1    |   |   |
-    | Run-time 2    |   |   |
-    | Run-time 3    |   |   |
-    | Run-time mean |   |   |
 
-    | vCPUs           | 6 | 8 |
-    |-----------------+---+---|
-    | Memory use 1    |   |   |
-    | Memory use 2    |   |   |
-    | Memory use 3    |   |   |
-    | Memory use mean |   |   |
+    | vCPUs      | 6 | 8 |
+    |------------+---+---|
+    | Memory use |   |   |
 
-
-    (Plots).
 
 * Results
 
@@ -115,21 +119,35 @@
 
 *** Single Core Clusters
 
-    | vCPUs         | 3 | 4 | 5 | 6 | 7 | 8 |
-    |---------------+---+---+---+---+---+---|
-    | Run-time 1    |   |   |   |   |   |   |
-    | Run-time 2    |   |   |   |   |   |   |
-    | Run-time 3    |   |   |   |   |   |   |
-    | Run-time mean |   |   |   |   |   |   |
+    #+TBLNAME: svd-rt-sc-table
+    | vCPUs |    1 |    2 |    3 |  mean | Unit  |
+    |-------+------+------+------+-------+-------|
+    |     3 | 6:35 | 6:30 | 6:26 | 06:30 | mm:ss |
+    |     4 | 4:00 | 3:55 | 3:55 | 03:56 |       |
+    |     5 | 4:05 | 4:00 | 4:04 | 04:03 |       |
+    |     6 | 4:04 | 4:19 | 4:04 | 04:09 |       |
+    |     7 |      |      |      | 00:00 |       |
+    |     8 |      |      |      | 00:00 |       |
+    #+TBLFM: $5=vmean($2..$4);UE
 
-    | vCPUs           | 3 | 4 | 5 | 6 | 7 | 8 |
-    |-----------------+---+---+---+---+---+---|
-    | Memory use 1    |   |   |   |   |   |   |
-    | Memory use 2    |   |   |   |   |   |   |
-    | Memory use 3    |   |   |   |   |   |   |
-    | Memory use mean |   |   |   |   |   |   |
+    #+TBLNAME: svd-mem-sc-table
+    | vCPUs      |    3 |    4 |    5 |    6 | 7 | 8 | Unit |
+    |------------+------+------+------+------+---+---+------|
+    | Memory use | 3.95 | 6.92 | 9.87 | 0.98 |   |   | GB   |
 
-    (Plots).
+    #+BEGIN_SRC gnuplot :var data=svd-rt-sc-table :exports results :file svd-sc.png
+reset
+set title "SVD Performance"
+set xlabel "Cluster Size"
+set xtics 1,1,8
+set ylabel "Time (mm:ss)"
+set ydata time
+set timefmt "%M:%S"
+plot data using 1:5 with lp lw 2 notitle
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:svd-sc.png]]
 
 *** Dual Core Clusters
 
@@ -178,6 +196,11 @@
   project of larger scope should incorporate evaluations of these types of
   matrices.
 
+  Additonally, this project relied rather heavily on manually entering the
+  performance data, but a larger project should extract this data
+  programatically via the available monitoring APIs.
+
+
 * Conclusions
 
   As can be seen in the results, scaling up the cluster can greatly increase the
@@ -191,7 +214,7 @@
   The code used for this project is available here:
   [[https://github.com/Xaldew/wasp-cc]]. It is structured roughly as follows:
 
-  - ~src/~       :: Contains the /main/ collection source code.
+  - ~src/~       :: Contains the /main/ collection of source code.
   - ~report/~    :: Contains the source for this report.
   - ~scripts/~   :: Contains various support scripts for working with the cloud.
   - ~tutorials/~ :: Contains test scripts.
