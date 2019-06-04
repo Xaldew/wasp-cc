@@ -107,14 +107,14 @@
 *** Single Core Clusters
 
     #+TBLNAME: qr-rt-sc-table
-    | vCPUs |     1 |     2 |     3 |  Mean | Unit  |
-    |-------+-------+-------+-------+-------+-------|
-    |     3 | 01:27 |  1:05 | 00:59 | 01:10 | mm:ss |
-    |     4 | 00:50 | 00:54 | 00:50 | 00:51 |       |
-    |     5 | 01:17 | 00:55 | 00:54 | 01:02 |       |
-    |     6 | 01:18 | 00:54 | 00:54 | 01:02 |       |
-    |     7 | 01:19 | 00:55 | 00:50 | 01:01 |       |
-    |     8 | 01:19 | 00:49 | 00:50 | 00:59 |       |
+    | vCPUs |    1 |    2 |    3 |  Mean | Unit  |
+    |-------+------+------+------+-------+-------|
+    |     3 | 1:27 | 1:05 | 0:59 | 01:10 | mm:ss |
+    |     4 | 0:50 | 0:54 | 0:50 | 00:51 |       |
+    |     5 | 1:17 | 0:55 | 0:54 | 01:02 |       |
+    |     6 | 1:18 | 0:54 | 0:54 | 01:02 |       |
+    |     7 | 1:19 | 0:55 | 0:50 | 01:01 |       |
+    |     8 | 1:19 | 0:49 | 0:50 | 00:59 |       |
     #+TBLFM: $5=vmean($2..$4);UE
 
     #+TBLNAME: qr-mem-sc-table
@@ -125,10 +125,10 @@
 *** Dual Core Clusters
 
     #+TBLNAME: qr-rt-dc-table
-    | vCPUs |     1 |     2 |     3 |  Mean | Unit  |
-    |-------+-------+-------+-------+-------+-------|
-    |     6 | 01:03 | 00:40 | 00:45 | 00:49 | mm:ss |
-    |     8 | 01:07 | 00:44 | 00:46 | 00:52 |       |
+    | vCPUs |    1 |    2 |    3 |  Mean | Unit  |
+    |-------+------+------+------+-------+-------|
+    |     6 | 1:03 | 0:40 | 0:45 | 00:49 | mm:ss |
+    |     8 | 1:07 | 0:44 | 0:46 | 00:52 |       |
     #+TBLFM: $5=vmean($2..$4);UE
 
     #+TBLNAME: qr-mem-dc-table
@@ -174,7 +174,7 @@
     #+BEGIN_SRC gnuplot :var sc=qr-rt-sc-table dc=qr-rt-dc-table :exports results :file qr.eps
 reset
 set title "QR Decomposition Performance"
-set xlabel "Cluster Size"
+set xlabel "Cluster Size (vCPUs)"
 set xtics 1,1,8
 set ylabel "Time (mm:ss)"
 set ydata time
@@ -188,7 +188,7 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
     #+BEGIN_SRC gnuplot :var sc=svd-rt-sc-table dc=svd-rt-dc-table :exports results :file svd.eps
 reset
 set title "SVD Performance"
-set xlabel "Cluster Size"
+set xlabel "Cluster Size (vCPUs)"
 set xtics 1,1,8
 set ylabel "Time (mm:ss)"
 set ydata time
@@ -256,7 +256,12 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
   Also, the choice of matrix for the QR decomposition seems to be rather
   poor. The routine did not really scale with the number of workers/cores and
   similarly to SVD, the memory use only increased after adding additional
-  workers.
+  workers. In fact, QRD appears to be almost entirely memory bound for square
+  matrices of this kind.
+
+  Additionally, the runtime for QRD was short enough that the Google Metric
+  Explorer occasionally failed to sample the peak memory use which explains why
+  some worker configuration sometimes use significantly less memory.
 
   Thus, while it can be worthwhile scale up this kind of cluster for these
   applications to improve the performance, one should keep in mind that scaling
@@ -265,10 +270,15 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
   intended input data. In our case, this means creating a cluster of 4 vCPUs, as
   performance did not improve beyond that point.
 
-  On a separate note, ne interesting aspect of the cloud environment was that
+  On a separate note, one interesting aspect of the cloud environment was that
   the first job submitted to the cluster almost always ran for about 30% longer
   (as can be seen for the QRD jobs). This is likely caused by the inactive
   cluster being initialized, but is in interesting observation nonetheless.
+
+  Finally, dual-core or multi-core configuration /might/ be useful as they
+  provide more memory but for this particular application and input, the
+  /performance/ benefit was negligible. Cost-wise however, it may be more
+  beneficial to use other configurations.
 
 
 * GitHub Sources
