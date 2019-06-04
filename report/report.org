@@ -4,10 +4,11 @@
 * Introduction
 
   In this report the framework for performing linear algebra in the cloud using
-  the [[https://spark.apache.org/][Apache Spark]] library [[https://spark.apache.org/docs/1.5.1/api/java/org/apache/spark/mllib/linalg/package-frame.html][LINALG]]. In particular the matrix methods /Singular
-  Value Decomposition/ (SVD) and /QR Decomposition/ (QRD) in this library are
-  evaluated. The performance of these methods are tested on a gradually
-  increasing cluster size using the /free/ tier on the [[https://cloud.google.com/dataproc/][Google DataProc]] platform.
+  the [[https://spark.apache.org/][Apache Spark]] library [[https://spark.apache.org/docs/1.5.1/api/java/org/apache/spark/mllib/linalg/package-frame.html][LINALG]] is evaluated. In particular the matrix methods
+  /Singular Value Decomposition/ (SVD) and /QR Decomposition/ (QRD) in this
+  library are assessed. The performance of these methods are tested on a
+  gradually increasing cluster size using the /free/ tier on the [[https://cloud.google.com/dataproc/][Google DataProc]]
+  platform.
 
   # In particular, the performance received is compared against that of a local
   # machine, to evaluate if the cloud can provide any beneficial speed-up using
@@ -26,8 +27,8 @@
 
 * Theory
 
-  This report evaluates the methods QR decomposition, and Singular value
-  decomposition, below is a very brief overview of what these methods actually
+  This report evaluates the methods QR decomposition and Singular value
+  decomposition. Below is a very brief overview of what these methods actually
   computes.
 
 ** QR Decomposition
@@ -69,22 +70,23 @@
   environment cluster as follows:
 
   - Using single core cloud workers with 3.5 GB of memory, the run-time and
-    memory usage is measured for clusters of size 3 to 8 (including master
+    memory usage is measured for clusters of size 3 to 8 (including the master
     node).
 
   - Using dual core cloud workers with 7.5 GB of memory, the run-time and memory
-    usage is measured for clusters of size 3 to 5 (including master node).
+    usage is measured for clusters of size 3 to 5 (including the master node).
 
-  On each of these configuration, the $5000x5000$ matrix [[https://sparse.tamu.edu/Hamm/add32][add32]] is used for the
-  SVD decomposition and the $1000x1000$ matrix [[https://sparse.tamu.edu/Gset/G45][G45]] is used for the QR
-  decomposition. Each test is repeated at least 3 times to estimate the average
-  run-time and memory use.
+  On each of these configuration, the $5000 \times 5000$ matrix [[https://sparse.tamu.edu/Hamm/add32][add32]] is used
+  for the SVD decomposition and the $1000 \times 1000$ matrix [[https://sparse.tamu.edu/Gset/G45][G45]] is used for
+  the QR decomposition. Each test is repeated at least 3 times to estimate the
+  average run-time. The memory use is only measured once, as it is assumed the
+  application have a deterministic memory usage pattern.
 
   For the SVD, we only compute the first 100 singular values, in order to reduce
   the necessary amount of memory.
 
   The run-time and memory usage is estimated from the /Elapsed time/ and /YARN
-  Memory/ in Google Cloud Console (See e.g. figure [[fig:runtime]], [[fig:memory]]).
+  Memory/ in Google Cloud Console (See e.g. figure [[fig:runtime]] and [[fig:memory]]).
 
   Note that the matrix is preprocessed to a serialized sparse row-matrix format
   in order to reduce the impact of parsing the MatrixMarket format and that
@@ -211,15 +213,16 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
   # vendors. (NEEDS CITE).
 
   This project only focused on (sparse) square matrices to keep the project
-  simple, a bigger project should also evaluate performance on non-square
-  matrices. This is particularly true for QRD, as the routines are optimized for
+  simple, a bigger one should also evaluate performance on non-square
+  matrices. This is particularly true for QRD as the routines are optimized for
   tall and skinny matrices.
 
-  Also, the experiments mostly focused on sparse matrices, as that was the only
-  type of matrices easily obtained from the [[https://sparse.tamu.edu/][SuiteSparse]] Matrix collection. A
-  larger study should compare larger dense matrices as well as sparse ones.
+  Also, the experiments mostly focused on sparse matrices since that was the
+  only type of matrices easily obtained from the [[https://sparse.tamu.edu/][SuiteSparse]] Matrix
+  collection. A larger study should compare dense matrices as well as sparse
+  ones.
 
-  Additionally, there are at several other classes of matrices that should be
+  Additionally, there exist several other classes of matrices that should be
   evaluated:
 
   - Diagonal  :: Matrix with elements exclusively on the central diagonal of the
@@ -245,30 +248,31 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
 
   However, as the cluster continued to scale we did not see any additional
   improvements. In fact, the performance started to degrade, which suggest that
-  the communication overhead caused by Spark can be rather significant if the
-  problem itself does not scale well.
+  the communication overhead of Spark can be significant if the problem itself
+  does not scale appropriately.
 
   On top of that, each additional worker greatly increased the amount of memory
-  used by the cluster, suggesting that a large amount of the matrix has to be
-  replicated across the workers, which might end up being a limiting factor for
+  used by the cluster, suggesting that a large amount of the data has to be
+  replicated across the workers, which might end up as a limiting factor for
   other data-intensive applications.
 
   Also, the choice of matrix for the QR decomposition seems to be rather
-  poor. The routine did not really scale with the number of workers/cores and
-  similarly to SVD, the memory use only increased after adding additional
-  workers. In fact, QRD appears to be almost entirely memory bound for square
-  matrices of this kind.
+  poor. The routine did not scale with the number of workers/cores and the
+  memory use only increased after adding additional workers, similar to SVD. In
+  fact, QRD appears to be almost entirely memory bound for square matrices of
+  this kind.
 
   Additionally, the runtime for QRD was short enough that the Google Metric
-  Explorer occasionally failed to sample the peak memory use which explains why
-  some worker configuration sometimes use significantly less memory.
+  Explorer (figure [[fig:memory]]) occasionally failed to sample the peak memory use
+  which explains why some worker configuration sometimes use significantly less
+  memory (table [[qr-mem-sc-table]]).
 
   Thus, while it can be worthwhile scale up this kind of cluster for these
   applications to improve the performance, one should keep in mind that scaling
-  up the cluster also increases the cost of running it so it seems like it is a
-  good idea to scale the cluster to an appropriate size in relation to the
-  intended input data. In our case, this means creating a cluster of 4 vCPUs, as
-  performance did not improve beyond that point.
+  up the cluster also increases the cost of running it. So it is good idea to
+  scale the cluster to an appropriate size in relation to the intended input
+  data. In our case, this means creating a cluster of 4 vCPUs, as performance
+  did not improve beyond that point.
 
   On a separate note, one interesting aspect of the cloud environment was that
   the first job submitted to the cluster almost always ran for about 30% longer
@@ -295,10 +299,10 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
 
 * Comments on the Assignment
 
-  In general, the assignment was not particularly hard, but the lack of
-  directions made it a bit unclear what results were actually desired. Also, the
-  general lack of good examples for running Spark on Google Cloud made this
-  assignment more vexing than necessary.
+  In general, the assignment was not overly hard, but the lack of directions
+  made it a bit unclear what results were actually desired. Also, the general
+  lack of good examples for running Spark on Google Cloud made this assignment a
+  bit vexing.
 
   At the time of writing, the Google Cloud platform is massive, and contains
   many confusing and often contradictory terms. To make matters worse: Doing
@@ -323,8 +327,8 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
 
   Additionally, all given examples are mostly a collection of examples of how to
   perform *functional programming* and not cloud computing. A lot of details
-  regarding how to host/transfer large datasets is completely missing. This is
-  difficult part of this assignment, not how to compose functions.
+  regarding how to host/transfer large datasets is missing. This is difficult
+  part of this assignment, not how to compose functions.
 
   # Regarding the SuiteSparse Matrix collection: This struck me as rather odd
   # choice of dataset-source since it almost exclusively contains sparse matrices,
