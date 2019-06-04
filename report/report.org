@@ -4,11 +4,10 @@
 * Introduction
 
   In this report the framework for performing linear algebra in the cloud using
-  the Apache Spark (CITE) library LINALG (CITE). In particular the matrix
-  methods /Singular Value Decomposition/ (SVD) and /QR Decomposition/ from this
-  library are evaluated. The performance of these methods are evaluated on a
-  gradually increasing cluster size using the /free/ tier on the Google DataProc
-  platform. (CITE).
+  the [[https://spark.apache.org/][Apache Spark]] library [[https://spark.apache.org/docs/1.5.1/api/java/org/apache/spark/mllib/linalg/package-frame.html][LINALG]]. In particular the matrix methods /Singular
+  Value Decomposition/ (SVD) and /QR Decomposition/ (QRD) in this library are
+  evaluated. The performance of these methods are tested on a gradually
+  increasing cluster size using the /free/ tier on the [[https://cloud.google.com/dataproc/][Google DataProc]] platform.
 
   # In particular, the performance received is compared against that of a local
   # machine, to evaluate if the cloud can provide any beneficial speed-up using
@@ -16,6 +15,8 @@
 
 * Terminology
 
+  - Unitary :: A complex valued matrix such that its conjugate transpose is also
+               its inverse.
   - Sparse  :: A matrix such that the quotient between the number of zero and
                non-zero elements is less than $0.5$
   - Dense   :: A matrix with more non-zero elements than zero elements.
@@ -25,16 +26,38 @@
 
 * Theory
 
-** Singular Value Decomposition
-
-   The idea behind
-
-   For more details regarding the decomposition, see for instance (CITE).
+  This report evaluates the methods QR decomposition, and Singular value
+  decomposition, below is a very brief overview of what these methods actually
+  computes.
 
 ** QR Decomposition
 
-   For more details regarding the decomposition, see for instance (CITE).
+   Given any complex valued $m \times n$ matrix $A$ with $m \geq n$, it can be
+   factored as the product of an $m \times m$ unitary matrix $Q$ and an $m
+   \times n$ upper triangular matrix $R$.
 
+   In particular, computing the QRD is numerically stable and can e.g., be used
+   to solve matrix equations of the kind $Ax = b$. For more details regarding
+   the decomposition, see for instance [[https://en.wikipedia.org/wiki/QR_decomposition][Wikipedia]].
+
+** Singular Value Decomposition
+
+   For any complex $m \times n$ matrix $M$ there exists a factorization called
+   the /singular value decomposition/ of $M$ of the form:
+
+   \begin{displaymath}
+   M = U \Sigma V^{*}
+   \end{displaymath}
+
+   Where:
+
+   - $U$ is an $m \times m$ unitary matrix.
+   - $\Sigma$ is non-negative /diagonal/ $m \times n$ matrix.
+   - $V$ is a $n \times n$ unitary matrix.
+
+   In particular, SVD is often used in mathematical factorizations and various
+   statistical applications, including machine learning. For more details
+   regarding the decomposition, see for instance [[https://en.wikipedia.org/wiki/Singular_value_decomposition][Wikipedia]].
 
 * Approach
 
@@ -42,30 +65,31 @@
   # computers the results will be compared with those of a local machine (A Lenovo
   # T480s laptop, with an Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz).
 
-  To evaluate the cloud environment, clusters are created as follows:
+  To evaluate the performance of the two methods, we create the cloud
+  environment cluster as follows:
 
-  - Using single core workers with 3.5 GB of memory, the run-time and memory
-    usage is measured for clusters of size 3 to 8 (including master node).
+  - Using single core cloud workers with 3.5 GB of memory, the run-time and
+    memory usage is measured for clusters of size 3 to 8 (including master
+    node).
 
-  - Using dual core workers with 7.5 GB of memory, the run-time and memory usage
-    is measured for clusters of size 3 to 5 (including master node).
+  - Using dual core cloud workers with 7.5 GB of memory, the run-time and memory
+    usage is measured for clusters of size 3 to 5 (including master node).
 
-  On each of these configuration, the $5000x5000$ matrix /add32/ (CITE) is used
-  for the SVD decomposition and the $1000x1000$ matrix /G45/ (CITE) is used for
-  the QR decomposition. Each test is repeated at least 3 times to estimate the
-  average run-time and memory use.
+  On each of these configuration, the $5000x5000$ matrix [[https://sparse.tamu.edu/Hamm/add32][add32]] is used for the
+  SVD decomposition and the $1000x1000$ matrix [[https://sparse.tamu.edu/Gset/G45][G45]] is used for the QR
+  decomposition. Each test is repeated at least 3 times to estimate the average
+  run-time and memory use.
 
   For the SVD, we only compute the first 100 singular values, in order to reduce
   the necessary amount of memory.
 
-  The run-time and memory usage is estimated from the /Elapsed time/ and /Yarn
-  MEMORY/ in Google Cloud Console (figs (CITE)).
+  The run-time and memory usage is estimated from the /Elapsed time/ and /YARN
+  Memory/ in Google Cloud Console (See figures (CITE)).
 
   Note that the matrix is preprocessed to a serialized sparse row-matrix format
-  in order to reduce the impact of parsing the MatrixMarket format.
-
-  Note that as we are using of-the-shelf algorithms, we assume that the result
-  is always correct and thus only concern ourselves with the execution
+  in order to reduce the impact of parsing the MatrixMarket format and that
+  since of-the-shelf algorithms are being used, the result is assumed to be
+  correct in all cases and thus we only concern ourselves with the execution
   statistics.
 
 * Results
@@ -75,22 +99,37 @@
 *** Single Core Clusters
 
     #+TBLNAME: qr-rt-sc-table
-    | vCPUs |     1 |     2 |     3 |  Mean | Unit |
-    |-------+-------+-------+-------+-------+------|
-    |     3 |  1:27 |  1:05 | 00:59 | 01:10 |      |
-    |     4 | 00:50 | 00:54 | 00:50 | 00:51 |      |
-    |     5 | 01:17 | 00:55 | 00:54 | 01:02 |      |
-    |     6 | 01:18 | 00:54 | 00:54 | 01:02 |      |
-    |     7 |       |       |       | 00:00 |      |
-    |     8 |       |       |       | 00:00 |      |
+    | vCPUs |     1 |     2 |     3 |  Mean | Unit  |
+    |-------+-------+-------+-------+-------+-------|
+    |     3 |  1:27 |  1:05 | 00:59 | 01:10 | mm:ss |
+    |     4 | 00:50 | 00:54 | 00:50 | 00:51 | mm:ss |
+    |     5 | 01:17 | 00:55 | 00:54 | 01:02 | mm:ss |
+    |     6 | 01:18 | 00:54 | 00:54 | 01:02 | mm:ss |
+    |     7 | 01:19 | 00:55 | 00:50 | 01:01 | mm:ss |
+    |     8 |  1:19 | 00:49 | 00:50 | 00:59 | mm:ss |
     #+TBLFM: $5=vmean($2..$4);UE
 
-    #+TBLNAME: qr-mem-table
-    | vCPUs      |    3 |    4 |    5 |     6 | 7 | 8 | Unit |
-    |------------+------+------+------+-------+---+---+------|
-    | Memory use | 3.95 | 6.92 | 9.87 | 12.88 |   |   | GB   |
+    #+TBLNAME: qr-mem-sc-table
+    | vCPUs      |    3 |    4 |    5 |    6 |     7 |     8 | Unit |
+    |------------+------+------+------+------+-------+-------+------|
+    | Memory use | 3.95 | 6.92 | 9.87 | 0.98 | 15.84 | 18.91 | GB   |
 
-    #+BEGIN_SRC gnuplot :var data=qr-rt-sc-table :exports results :file qr-sc.png
+*** Dual Core Clusters
+
+    #+TBLNAME: qr-rt-dc-table
+    | vCPUs |    1 |    2 |     3 |  Mean | Unit  |
+    |-------+------+------+-------+-------+-------|
+    |     6 | 1:03 | 0:40 | 00:45 | 00:49 | mm:ss |
+    |     8 | 1:07 | 0:44 |  0:46 | 00:52 | mm:ss |
+    #+TBLFM: $5=vmean($2..$4);UE
+
+    #+TBLNAME: qr-mem-dc-table
+    | vCPUs      |    6 |     8 | Unit |
+    |------------+------+-------+------|
+    | Memory use | 9.87 | 15.84 | GB   |
+
+
+    #+BEGIN_SRC gnuplot :var sc=qr-rt-sc-table dc=qr-rt-dc-table :exports results :file qr.png
 reset
 set title "QR Decomposition Performance"
 set xlabel "Cluster Size"
@@ -98,19 +137,12 @@ set xtics 1,1,8
 set ylabel "Time (mm:ss)"
 set ydata time
 set timefmt "%M:%S"
-plot data using 1:5 with lp lw 2 notitle
+plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual Core"
     #+END_SRC
 
     #+RESULTS:
-    [[file:qr-sc.png]]
+    [[file:qr.png]]
 
-
-*** Dual Core Clusters
-
-
-    | vCPUs      | 6 | 8 |
-    |------------+---+---|
-    | Memory use |   |   |
 
 
 * Results
@@ -120,22 +152,37 @@ plot data using 1:5 with lp lw 2 notitle
 *** Single Core Clusters
 
     #+TBLNAME: svd-rt-sc-table
-    | vCPUs |    1 |    2 |    3 |  mean | Unit  |
+    | vCPUs |    1 |    2 |    3 |  Mean | Unit  |
     |-------+------+------+------+-------+-------|
     |     3 | 6:35 | 6:30 | 6:26 | 06:30 | mm:ss |
-    |     4 | 4:00 | 3:55 | 3:55 | 03:56 |       |
-    |     5 | 4:05 | 4:00 | 4:04 | 04:03 |       |
-    |     6 | 4:04 | 4:19 | 4:04 | 04:09 |       |
-    |     7 |      |      |      | 00:00 |       |
-    |     8 |      |      |      | 00:00 |       |
+    |     4 | 4:00 | 3:55 | 3:55 | 03:56 | mm:ss |
+    |     5 | 4:05 | 4:00 | 4:04 | 04:03 | mm:ss |
+    |     6 | 4:04 | 4:19 | 4:04 | 04:09 | mm:ss |
+    |     7 | 4:24 | 4:16 | 4:19 | 04:19 | mm:ss |
+    |     8 | 4:34 | 4:25 | 4:30 | 04:29 | mm:ss |
     #+TBLFM: $5=vmean($2..$4);UE
 
     #+TBLNAME: svd-mem-sc-table
-    | vCPUs      |    3 |    4 |    5 |    6 | 7 | 8 | Unit |
-    |------------+------+------+------+------+---+---+------|
-    | Memory use | 3.95 | 6.92 | 9.87 | 0.98 |   |   | GB   |
+    | vCPUs      |    3 |    4 |    5 |     6 |     7 |     8 | Unit |
+    |------------+------+------+------+-------+-------+-------+------|
+    | Memory use | 3.95 | 6.92 | 9.87 | 12.88 | 12.05 | 18.91 | GB   |
 
-    #+BEGIN_SRC gnuplot :var data=svd-rt-sc-table :exports results :file svd-sc.png
+*** Dual Core Clusters
+
+    #+TBLNAME: svd-rt-dc-table
+    | vCPUs |    1 |    2 |    3 |  Mean | Unit  |
+    |-------+------+------+------+-------+-------|
+    |     6 | 3:26 | 3:29 | 3:40 | 03:31 | mm:ss |
+    |     8 | 3:55 | 3:44 | 3:56 | 03:51 | mm:ss |
+    #+TBLFM: $5=vmean($2..$4);UE
+
+    #+TBLNAME: svd-mem-dc-table
+    | vCPUs      |    6 |     8 | Unit |
+    |------------+------+-------+------|
+    | Memory use | 9.87 | 15.84 | GB   |
+
+
+    #+BEGIN_SRC gnuplot :var sc=svd-rt-sc-table dc=svd-rt-dc-table :exports results :file svd.png
 reset
 set title "SVD Performance"
 set xlabel "Cluster Size"
@@ -143,30 +190,14 @@ set xtics 1,1,8
 set ylabel "Time (mm:ss)"
 set ydata time
 set timefmt "%M:%S"
-plot data using 1:5 with lp lw 2 notitle
+plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual Core"
     #+END_SRC
 
     #+RESULTS:
-    [[file:svd-sc.png]]
-
-*** Dual Core Clusters
-
-    | vCPUs         | 6 | 8 |
-    |---------------+---+---|
-    | Run-time 1    |   |   |
-    | Run-time 2    |   |   |
-    | Run-time 3    |   |   |
-    | Run-time mean |   |   |
-
-    | vCPUs           | 6 | 8 |
-    |-----------------+---+---|
-    | Memory use 1    |   |   |
-    | Memory use 2    |   |   |
-    | Memory use 3    |   |   |
-    | Memory use mean |   |   |
+    [[file:svd.png]]
 
 
-* Further Work
+* Discussion and Further Work
 
   Due to the limited scope of this project, a large amount of interesting topics
   in computational linear algebra is by necessity omitted.
@@ -176,15 +207,16 @@ plot data using 1:5 with lp lw 2 notitle
   # topic in itself since performance can vary greatly depending on the
   # vendors. (NEEDS CITE).
 
-  This project only focused on square matrices to keep the project simple, a
-  bigger project should also evaluate performance on non-square matrices.
+  This project only focused on (sparse) square matrices to keep the project
+  simple, a bigger project should also evaluate performance on non-square
+  matrices. This is particularly true for QRD, as the routines are optimized for
+  tall and skinny matrices.
 
   Also, the experiments mostly focused on sparse matrices, as that was the only
-  type of matrices easily obtained from the SuiteSparse Matrix collection
-  (CITE). A larger study should compare larger dense matrices as well as sparse
-  ones.
+  type of matrices easily obtained from the [[https://sparse.tamu.edu/][SuiteSparse]] Matrix collection. A
+  larger study should compare larger dense matrices as well as sparse ones.
 
-  Additionally, there are at several other classes of matrices that could be
+  Additionally, there are at several other classes of matrices that should be
   evaluated:
 
   - Diagonal  :: Matrix with elements exclusively on the central diagonal of the
@@ -196,18 +228,45 @@ plot data using 1:5 with lp lw 2 notitle
   project of larger scope should incorporate evaluations of these types of
   matrices.
 
-  Additonally, this project relied rather heavily on manually entering the
-  performance data, but a larger project should extract this data
-  programatically via the available monitoring APIs.
+  Additionally, this project relied on manually entering the performance data,
+  but a larger project should extract this data programatically via the
+  available cloud monitoring APIs instead.
 
 
 * Conclusions
 
-  As can be seen in the results, scaling up the cluster can greatly increase the
-  speed of some of these linear algebra computations. However, it is worthwhile
-  to keep in mind that scaling up the cluster also increases the cost of running
-  the cluster so it seems like it is a good idea to scale the cluster to an
-  appropriate size in relation to the intended input data.
+  As can be seen in the results, scaling up the cluster can increase the speed
+  of some of these linear algebra computations. In particular SVD was able to
+  reduce the first run-time results by several minutes by adding a single
+  worker.
+
+  However, as the cluster continued to scale we did not see any additional
+  improvements. In fact, the performance started to degrade, which suggest that
+  the communication overhead caused by Spark can be rather significant if the
+  problem itself does not scale well.
+
+  On top of that, each additional worker greatly increased the amount of memory
+  used by the cluster, suggesting that a large amount of the matrix has to be
+  replicated across the workers, which might end up being a limiting factor for
+  other data-intensive applications.
+
+  Also, the choice of matrix for the QR decomposition seems to be rather
+  poor. The routine did not really scale with the number of workers/cores and
+  similarly to SVD, the memory use only increased after adding additional
+  workers.
+
+  Thus, while it can be worthwhile scale up this kind of cluster for these
+  applications to improve the performance, one should keep in mind that scaling
+  up the cluster also increases the cost of running it so it seems like it is a
+  good idea to scale the cluster to an appropriate size in relation to the
+  intended input data. In our case, this means creating a cluster of 4 vCPUs, as
+  performance did not improve beyond that point.
+
+  On a separate note, ne interesting aspect of the cloud environment was that
+  the first job submitted to the cluster almost always ran for about 30% longer
+  (as can be seen for the QRD jobs). This is likely caused by the inactive
+  cluster being initialized, but is in interesting observation nonetheless.
+
 
 * GitHub Sources
 
@@ -220,16 +279,18 @@ plot data using 1:5 with lp lw 2 notitle
   - ~tutorials/~ :: Contains test scripts.
   - ~data/~      :: Contains test data.
 
+
 * Comments on the Assignment
 
   In general, the assignment was not particularly hard, but the lack of
   directions made it a bit unclear what results were actually desired. Also, the
   general lack of good examples for running Spark on Google Cloud made this
-  assignment far more vexing than necessary.
+  assignment more vexing than necessary.
 
-  To begin with the Google Cloud platform is massive and contains many confusing
-  and often contradictory terms; and to make matters worse: Doing something
-  wrong can result in a significant loss of real money.
+  At the time of writing, the Google Cloud platform is massive, and contains
+  many confusing and often contradictory terms. To make matters worse: Doing
+  something wrong can result in a significant loss of real money. Thus clear
+  directions should be prioritized.
 
   # Thus, simply pointing us to the front page of Google DataProc and telling us
   # to "get crackin'" is absolutely the wrong approach for this kind of project.
@@ -240,12 +301,12 @@ plot data using 1:5 with lp lw 2 notitle
   # matrix computation to study or explicitly state what computations one should
   # investigate.
 
-  Moreover, the instructions strongly suggest using preemptible instances,
-  however, when you dig into the documentations for the "free" instances you
-  notice that you are required to use 1 master and at least 2 nodes *normal*
-  worker nodes. And, since you are limited 8 vCPUs in *total* it is not
-  worthwhile to try to fit preemptible instances into this quota. For a task
-  like this it just adds complexity and should simply be omitted.
+  Moreover, the instructions strongly suggest using preemptible instances. But,
+  when you dig into the documentations for the "free" instances you notice that
+  you are required to use 1 master and at least 2 nodes *normal* worker
+  nodes. And, since you are limited 8 vCPUs in *total* it is not worthwhile to
+  try to fit preemptible instances into this quota. For a task like this it just
+  adds complexity and should simply be omitted.
 
   Additionally, all given examples are mostly a collection of examples of how to
   perform *functional programming* and not cloud computing. A lot of details
