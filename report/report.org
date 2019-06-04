@@ -84,13 +84,21 @@
   the necessary amount of memory.
 
   The run-time and memory usage is estimated from the /Elapsed time/ and /YARN
-  Memory/ in Google Cloud Console (See figures (CITE)).
+  Memory/ in Google Cloud Console (See e.g. figure [[fig:runtime]], [[fig:memory]]).
 
   Note that the matrix is preprocessed to a serialized sparse row-matrix format
   in order to reduce the impact of parsing the MatrixMarket format and that
   since of-the-shelf algorithms are being used, the result is assumed to be
   correct in all cases and thus we only concern ourselves with the execution
   statistics.
+
+  #+CAPTION: Example of the view the run-time use was extracted from.
+  #+NAME: fig:runtime
+  file:./jobs_img.png
+
+  #+CAPTION: Example of the view the memory use was extracted from.
+  #+NAME: fig:memory
+  file:./metrics_crop.png
 
 * Results
 
@@ -101,12 +109,12 @@
     #+TBLNAME: qr-rt-sc-table
     | vCPUs |     1 |     2 |     3 |  Mean | Unit  |
     |-------+-------+-------+-------+-------+-------|
-    |     3 |  1:27 |  1:05 | 00:59 | 01:10 | mm:ss |
-    |     4 | 00:50 | 00:54 | 00:50 | 00:51 | mm:ss |
-    |     5 | 01:17 | 00:55 | 00:54 | 01:02 | mm:ss |
-    |     6 | 01:18 | 00:54 | 00:54 | 01:02 | mm:ss |
-    |     7 | 01:19 | 00:55 | 00:50 | 01:01 | mm:ss |
-    |     8 |  1:19 | 00:49 | 00:50 | 00:59 | mm:ss |
+    |     3 | 01:27 |  1:05 | 00:59 | 01:10 | mm:ss |
+    |     4 | 00:50 | 00:54 | 00:50 | 00:51 |       |
+    |     5 | 01:17 | 00:55 | 00:54 | 01:02 |       |
+    |     6 | 01:18 | 00:54 | 00:54 | 01:02 |       |
+    |     7 | 01:19 | 00:55 | 00:50 | 01:01 |       |
+    |     8 | 01:19 | 00:49 | 00:50 | 00:59 |       |
     #+TBLFM: $5=vmean($2..$4);UE
 
     #+TBLNAME: qr-mem-sc-table
@@ -117,35 +125,16 @@
 *** Dual Core Clusters
 
     #+TBLNAME: qr-rt-dc-table
-    | vCPUs |    1 |    2 |     3 |  Mean | Unit  |
-    |-------+------+------+-------+-------+-------|
-    |     6 | 1:03 | 0:40 | 00:45 | 00:49 | mm:ss |
-    |     8 | 1:07 | 0:44 |  0:46 | 00:52 | mm:ss |
+    | vCPUs |     1 |     2 |     3 |  Mean | Unit  |
+    |-------+-------+-------+-------+-------+-------|
+    |     6 | 01:03 | 00:40 | 00:45 | 00:49 | mm:ss |
+    |     8 | 01:07 | 00:44 | 00:46 | 00:52 |       |
     #+TBLFM: $5=vmean($2..$4);UE
 
     #+TBLNAME: qr-mem-dc-table
     | vCPUs      |    6 |     8 | Unit |
     |------------+------+-------+------|
     | Memory use | 9.87 | 15.84 | GB   |
-
-
-    #+BEGIN_SRC gnuplot :var sc=qr-rt-sc-table dc=qr-rt-dc-table :exports results :file qr.png
-reset
-set title "QR Decomposition Performance"
-set xlabel "Cluster Size"
-set xtics 1,1,8
-set ylabel "Time (mm:ss)"
-set ydata time
-set timefmt "%M:%S"
-plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual Core"
-    #+END_SRC
-
-    #+RESULTS:
-    [[file:qr.png]]
-
-
-
-* Results
 
 ** Singular Value Decomposition
 
@@ -155,11 +144,11 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
     | vCPUs |    1 |    2 |    3 |  Mean | Unit  |
     |-------+------+------+------+-------+-------|
     |     3 | 6:35 | 6:30 | 6:26 | 06:30 | mm:ss |
-    |     4 | 4:00 | 3:55 | 3:55 | 03:56 | mm:ss |
-    |     5 | 4:05 | 4:00 | 4:04 | 04:03 | mm:ss |
-    |     6 | 4:04 | 4:19 | 4:04 | 04:09 | mm:ss |
-    |     7 | 4:24 | 4:16 | 4:19 | 04:19 | mm:ss |
-    |     8 | 4:34 | 4:25 | 4:30 | 04:29 | mm:ss |
+    |     4 | 4:00 | 3:55 | 3:55 | 03:56 |       |
+    |     5 | 4:05 | 4:00 | 4:04 | 04:03 |       |
+    |     6 | 4:04 | 4:19 | 4:04 | 04:09 |       |
+    |     7 | 4:24 | 4:16 | 4:19 | 04:19 |       |
+    |     8 | 4:34 | 4:25 | 4:30 | 04:29 |       |
     #+TBLFM: $5=vmean($2..$4);UE
 
     #+TBLNAME: svd-mem-sc-table
@@ -173,7 +162,7 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
     | vCPUs |    1 |    2 |    3 |  Mean | Unit  |
     |-------+------+------+------+-------+-------|
     |     6 | 3:26 | 3:29 | 3:40 | 03:31 | mm:ss |
-    |     8 | 3:55 | 3:44 | 3:56 | 03:51 | mm:ss |
+    |     8 | 3:55 | 3:44 | 3:56 | 03:51 |       |
     #+TBLFM: $5=vmean($2..$4);UE
 
     #+TBLNAME: svd-mem-dc-table
@@ -182,7 +171,21 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
     | Memory use | 9.87 | 15.84 | GB   |
 
 
-    #+BEGIN_SRC gnuplot :var sc=svd-rt-sc-table dc=svd-rt-dc-table :exports results :file svd.png
+    #+BEGIN_SRC gnuplot :var sc=qr-rt-sc-table dc=qr-rt-dc-table :exports results :file qr.eps
+reset
+set title "QR Decomposition Performance"
+set xlabel "Cluster Size"
+set xtics 1,1,8
+set ylabel "Time (mm:ss)"
+set ydata time
+set timefmt "%M:%S"
+plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual Core"
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:qr.eps]]
+
+    #+BEGIN_SRC gnuplot :var sc=svd-rt-sc-table dc=svd-rt-dc-table :exports results :file svd.eps
 reset
 set title "SVD Performance"
 set xlabel "Cluster Size"
@@ -194,7 +197,7 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
     #+END_SRC
 
     #+RESULTS:
-    [[file:svd.png]]
+    [[file:svd.eps]]
 
 
 * Discussion and Further Work
