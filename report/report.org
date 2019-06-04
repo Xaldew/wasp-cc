@@ -10,9 +10,6 @@
   gradually increasing cluster size using the /free/ tier on the [[https://cloud.google.com/dataproc/][Google DataProc]]
   platform.
 
-  # In particular, the performance received is compared against that of a local
-  # machine, to evaluate if the cloud can provide any beneficial speed-up using
-  # the /free/ tier on the Google DataProc platform (CITE).
 
 * Terminology
 
@@ -21,9 +18,7 @@
   - Sparse  :: A matrix such that the quotient between the number of zero and
                non-zero elements is less than $0.5$
   - Dense   :: A matrix with more non-zero elements than zero elements.
-  # - (S)GEMM :: (Single Precision floating point) General Matrix Multiplication.
-  # - $O(n)$  :: Big-O-notation for approximating the complexity of algorithms by
-  #              removing all factors but the most dominating one.
+
 
 * Theory
 
@@ -60,11 +55,8 @@
    statistical applications, including machine learning. For more details
    regarding the decomposition, see for instance [[https://en.wikipedia.org/wiki/Singular_value_decomposition][Wikipedia]].
 
-* Approach
 
-  # To evaluate the performance of matrix multiplication running on cloud
-  # computers the results will be compared with those of a local machine (A Lenovo
-  # T480s laptop, with an Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz).
+* Approach
 
   To evaluate the performance of the two methods, we create the cloud
   environment cluster as follows:
@@ -207,11 +199,6 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
   Due to the limited scope of this project, a large amount of interesting topics
   in computational linear algebra is by necessity omitted.
 
-  # To begin, it would be very interesting to see how matrix multiplication
-  # perform on GPUs and by extension, on GPUs in the cloud. This is a significant
-  # topic in itself since performance can vary greatly depending on the
-  # vendors. (NEEDS CITE).
-
   This project only focused on (sparse) square matrices to keep the project
   simple, a bigger one should also evaluate performance on non-square
   matrices. This is particularly true for QRD as the routines are optimized for
@@ -309,15 +296,6 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
   something wrong can result in a significant loss of real money. Thus clear
   directions should be prioritized.
 
-  # Thus, simply pointing us to the front page of Google DataProc and telling us
-  # to "get crackin'" is absolutely the wrong approach for this kind of project.
-
-  # Also, what is exactly is "Matrix computations"? While I'm all for open-ended
-  # questions and open investigations in research topics, this is unnecessarily
-  # vague. Either be frank to the students and ask them to choose one kind of
-  # matrix computation to study or explicitly state what computations one should
-  # investigate.
-
   Moreover, the instructions strongly suggest using preemptible instances. But,
   when you dig into the documentations for the "free" instances you notice that
   you are required to use 1 master and at least 2 nodes *normal* worker
@@ -329,19 +307,3 @@ plot sc u 1:5 with lp lw 2 title "Single Core", dc u 1:5 w lp lw 2 title "Dual C
   perform *functional programming* and not cloud computing. A lot of details
   regarding how to host/transfer large datasets is missing. This is difficult
   part of this assignment, not how to compose functions.
-
-  # Regarding the SuiteSparse Matrix collection: This struck me as rather odd
-  # choice of dataset-source since it almost exclusively contains sparse matrices,
-  # meaning that the type of matrices and computations we can investigate is
-  # drastically limited.
-
-  # Additionally, for larger matrices it became increasingly difficult to find two
-  # different matrices of the same dimensions, which would force us the either
-  # truncate some other matrix and make notes of that, or only perform
-  # matrix-squaring instead of multiplying.
-
-  # To make matters worse, the behavior of matrix-multiplication differs
-  # significantly depending on which kind of matrices one is operating on, meaning
-  # that final results are extremely dependent on the user choices. This makes it
-  # very hard to design a proper experiment and draw reasonable conclusions from
-  # the results.
